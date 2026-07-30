@@ -48,7 +48,7 @@ jobs:
           command_timeout: 30m
           script: |
             set -e
-            cd /root/ocr-service
+            cd /home/github-runner/ocr-service
             docker compose pull
             docker compose up -d
             sleep 5
