@@ -20,13 +20,13 @@ jobs:
           repository: phona/pytoya-ocr
           tag: v1.0
           fileName: "*.onnx"
-          out-file-path: pytoya-ocr/service/models/
+          out-file-path: service/models/
 
       - name: Arrange model files
         run: |
-          mkdir -p pytoya-ocr/service/models/det_v4/onnx pytoya-ocr/service/models/rec_v8/onnx
-          mv pytoya-ocr/service/models/det_v4.onnx pytoya-ocr/service/models/det_v4/onnx/model.onnx
-          mv pytoya-ocr/service/models/rec_v8.onnx pytoya-ocr/service/models/rec_v8/onnx/model.onnx
+          mkdir -p service/models/det_v4/onnx service/models/rec_v8/onnx
+          mv service/models/det_v4.onnx service/models/det_v4/onnx/model.onnx
+          mv service/models/rec_v8.onnx service/models/rec_v8/onnx/model.onnx
 
       - name: Log in to ghcr.io
         run: |
@@ -34,7 +34,7 @@ jobs:
 
       - name: Build and push
         run: |
-          cd pytoya-ocr/service
+          cd service
           docker build -t ghcr.io/${{ github.repository }}/ocr-service:latest .
           docker push ghcr.io/${{ github.repository }}/ocr-service:latest
 

@@ -1,11 +1,9 @@
+service/models/det_v4/onnx/
+service/models/rec_v8/onnx/
+models/
+training_data/
 data/
-pytoya-ocr/models/
-pytoya-ocr/training_data/
 *.pyc
 __pycache__/
 .env
 .ocr_env/
-
-# workflow build context (downloaded from Release)
-pytoya-ocr/service/models/det_v4/
-pytoya-ocr/service/models/rec_v8/onnx/
