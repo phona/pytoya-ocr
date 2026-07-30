@@ -1,5 +1,5 @@
-service/models/det_v4/onnx/
-service/models/rec_v8/onnx/
+service/models/det/onnx/
+service/models/rec/onnx/
 models/
 training_data/
 data/

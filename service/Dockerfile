@@ -8,9 +8,9 @@ RUN pip install --no-cache-dir onnxruntime fastapi uvicorn python-multipart pyya
 
 COPY server.py infer_onnx.py ./
 
-COPY models/det_v4/onnx/model.onnx models/det_v4/onnx/model.onnx
-COPY models/rec_v8/onnx/model.onnx models/rec_v8/onnx/model.onnx
-COPY models/rec_v8/infer/inference.yml models/rec_v8/infer/inference.yml
+COPY models/det/onnx/model.onnx models/det/onnx/model.onnx
+COPY models/rec/onnx/model.onnx models/rec/onnx/model.onnx
+COPY models/rec/infer/inference.yml models/rec/infer/inference.yml
 
 EXPOSE 8090
 

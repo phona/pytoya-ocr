@@ -11,9 +11,9 @@ import numpy as np
 import yaml
 
 MODEL_DIR = os.environ.get("MODEL_DIR", os.path.join(os.path.dirname(__file__), "..", "models"))
-DET_ONNX = os.path.join(MODEL_DIR, "det_v4", "onnx", "model.onnx")
-REC_ONNX = os.path.join(MODEL_DIR, "rec_v8", "onnx", "model.onnx")
-REC_YML  = os.path.join(MODEL_DIR, "rec_v8", "infer", "inference.yml")
+DET_ONNX = os.path.join(MODEL_DIR, "det", "onnx", "model.onnx")
+REC_ONNX = os.path.join(MODEL_DIR, "rec", "onnx", "model.onnx")
+REC_YML  = os.path.join(MODEL_DIR, "rec", "infer", "inference.yml")
 
 
 class OcrOnnxEngine:

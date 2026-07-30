@@ -24,9 +24,9 @@ jobs:
 
       - name: Arrange model files
         run: |
-          mkdir -p service/models/det_v4/onnx service/models/rec_v8/onnx
-          mv service/models/det_v4.onnx service/models/det_v4/onnx/model.onnx
-          mv service/models/rec_v8.onnx service/models/rec_v8/onnx/model.onnx
+          mkdir -p service/models/det/onnx service/models/rec/onnx
+          mv service/models/det.onnx service/models/det/onnx/model.onnx
+          mv service/models/rec.onnx service/models/rec/onnx/model.onnx
 
       - name: Log in to ghcr.io
         run: |
