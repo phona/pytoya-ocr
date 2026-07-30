@@ -8,6 +8,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
 
@@ -33,7 +36,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
         run: |
@@ -49,10 +52,8 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             set -e
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             cd /root/ocr-service
             docker compose pull
             docker compose up -d
             sleep 5
-            docker logout ghcr.io
             curl -sf http://localhost:8090/health || exit 1
