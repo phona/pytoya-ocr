@@ -7,4 +7,5 @@ __pycache__/
 .ocr_env/
 
 # workflow build context (downloaded from Release)
-pytoya-ocr/service/models/
+pytoya-ocr/service/models/det_v4/
+pytoya-ocr/service/models/rec_v8/onnx/
