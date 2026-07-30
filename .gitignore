@@ -1,6 +1,6 @@
+/models/
 service/models/det/onnx/
 service/models/rec/onnx/
-models/
 training_data/
 data/
 *.pyc
