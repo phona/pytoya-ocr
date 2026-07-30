@@ -17,13 +17,13 @@ jobs:
           repository: phona/pytoya-ocr
           tag: v1.0
           fileName: "*.onnx"
-          out-file-path: service/models/
+          out-file-path: pytoya-ocr/service/models/
 
       - name: Arrange model files
         run: |
-          mkdir -p service/models/det_v4/onnx service/models/rec_v8/onnx
-          mv service/models/det_v4.onnx service/models/det_v4/onnx/model.onnx
-          mv service/models/rec_v8.onnx service/models/rec_v8/onnx/model.onnx
+          mkdir -p pytoya-ocr/service/models/det_v4/onnx pytoya-ocr/service/models/rec_v8/onnx
+          mv pytoya-ocr/service/models/det_v4.onnx pytoya-ocr/service/models/det_v4/onnx/model.onnx
+          mv pytoya-ocr/service/models/rec_v8.onnx pytoya-ocr/service/models/rec_v8/onnx/model.onnx
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -38,7 +38,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: service/
+          context: pytoya-ocr/service/
           push: true
           tags: ghcr.io/phona/ocr-service:latest
 
