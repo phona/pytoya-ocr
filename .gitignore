@@ -5,3 +5,6 @@ pytoya-ocr/training_data/
 __pycache__/
 .env
 .ocr_env/
+
+# workflow build context (downloaded from Release)
+pytoya-ocr/service/models/
