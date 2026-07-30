@@ -36,11 +36,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: service/
-          push: true
-          tags: ghcr.io/${{ github.repository }}/ocr-service:latest
+        run: |
+          cd pytoya-ocr/service
+          docker build -t ghcr.io/${{ github.repository }}/ocr-service:latest .
+          docker push ghcr.io/${{ github.repository }}/ocr-service:latest
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1
