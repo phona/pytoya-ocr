@@ -5,8 +5,8 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
 
 MODEL_DIR = os.environ.get("MODEL_DIR", os.path.join(os.path.dirname(__file__), "..", "models"))
-DET_ONNX = os.path.join(MODEL_DIR, "det_v4", "onnx", "model.onnx")
-REC_ONNX = os.path.join(MODEL_DIR, "rec_v8", "onnx", "model.onnx")
+DET_ONNX = os.path.join(MODEL_DIR, "det", "onnx", "model.onnx")
+REC_ONNX = os.path.join(MODEL_DIR, "rec", "onnx", "model.onnx")
 
 for p in [DET_ONNX, REC_ONNX]:
     if not os.path.exists(p):
