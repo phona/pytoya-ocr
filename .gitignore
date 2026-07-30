@@ -1,0 +1,7 @@
+data/
+pytoya-ocr/models/
+pytoya-ocr/training_data/
+*.pyc
+__pycache__/
+.env
+.ocr_env/

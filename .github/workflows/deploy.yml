@@ -1,0 +1,57 @@
+name: build-and-deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download ONNX models from Release
+        uses: robinraju/release-downloader@v1.8
+        with:
+          repository: phona/pytoya-ocr
+          tag: v1.0
+          fileName: "*.onnx"
+          out-file-path: service/models/
+
+      - name: Arrange model files
+        run: |
+          mkdir -p service/models/det_v4/onnx service/models/rec_v8/onnx
+          mv service/models/det_v4.onnx service/models/det_v4/onnx/model.onnx
+          mv service/models/rec_v8.onnx service/models/rec_v8/onnx/model.onnx
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: service/
+          push: true
+          tags: ghcr.io/phona/ocr-service:latest
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            cd /root/ocr-service
+            docker compose pull
+            docker compose up -d
+            sleep 5
+            curl -sf http://localhost:8090/health || exit 1
