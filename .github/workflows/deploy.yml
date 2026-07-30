@@ -50,8 +50,10 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             set -e
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             cd /root/ocr-service
             docker compose pull
             docker compose up -d
             sleep 5
+            docker logout ghcr.io
             curl -sf http://localhost:8090/health || exit 1
