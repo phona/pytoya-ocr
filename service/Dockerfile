@@ -4,7 +4,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y libgl1 libglib2.0-0t64 libgomp1 && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir onnxruntime fastapi uvicorn python-multipart pyyaml opencv-python-headless shapely
+RUN pip install --no-cache-dir onnxruntime fastapi uvicorn python-multipart pyyaml opencv-python-headless shapely pyclipper
 
 COPY server.py infer_onnx.py ./
 

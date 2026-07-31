@@ -5,3 +5,4 @@ python-multipart
 pyyaml
 opencv-python-headless
 shapely
+pyclipper

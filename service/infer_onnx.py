@@ -67,42 +67,59 @@ class OcrOnnxEngine:
         return img, (h2, w2)
 
     @staticmethod
-    def _det_postprocess(prob_map, orig_shape, scaled_shape):
-        from shapely.geometry import Polygon
+    def _box_score_fast(bitmap, box):
+        h, w = bitmap.shape[:2]
+        box = box.copy()
+        xmin = np.clip(np.floor(box[:, 0].min()).astype(np.int32), 0, w - 1)
+        xmax = np.clip(np.ceil(box[:, 0].max()).astype(np.int32), 0, w - 1)
+        ymin = np.clip(np.floor(box[:, 1].min()).astype(np.int32), 0, h - 1)
+        ymax = np.clip(np.ceil(box[:, 1].max()).astype(np.int32), 0, h - 1)
+        if xmax <= xmin or ymax <= ymin:
+            return 0.0
+        mask = np.zeros((ymax - ymin + 1, xmax - xmin + 1), dtype=np.uint8)
+        box[:, 0] = box[:, 0] - xmin
+        box[:, 1] = box[:, 1] - ymin
+        cv2.fillPoly(mask, box.reshape(1, -1, 2).astype(np.int32), 1)
+        return float(cv2.mean(bitmap[ymin:ymax + 1, xmin:xmax + 1], mask)[0])
 
-        thresh, box_thresh, max_candidates, unclip_ratio = 0.3, 0.6, 1000, 1.5
-        prob_map = prob_map[0, 0, :, :]
-        segmentation = (prob_map > thresh).astype(np.uint8)
-        n_labels, labels, _, _ = cv2.connectedComponentsWithStats(segmentation, connectivity=4)
+    @staticmethod
+    def _unclip(box, unclip_ratio):
+        from shapely.geometry import Polygon
+        import pyclipper
+
+        poly = Polygon(box)
+        distance = poly.area * unclip_ratio / poly.length
+        offset = pyclipper.PyclipperOffset()
+        offset.AddPath(box.astype(np.float32), pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
+        expanded = np.array(offset.Execute(distance), dtype=np.float32)
+        if len(expanded) == 0 or len(expanded[0]) < 3:
+            return np.array([])
+        return expanded[0]
+
+    @classmethod
+    def _det_postprocess(cls, prob_map, orig_shape, scaled_shape):
+        thresh, box_thresh, unclip_ratio = 0.3, 0.6, 1.5
+        prob = prob_map[0, 0]
+        segmentation = (prob > thresh).astype(np.uint8)
+        mask = cv2.dilate(segmentation, np.ones((3, 3), np.uint8))
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         boxes = []
         oh, ow = orig_shape
-        for i in range(1, min(n_labels, max_candidates + 1)):
-            mask = (labels == i).astype(np.uint8) * 255
-            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            if not contours:
-                continue
-            contour = max(contours, key=cv2.contourArea)
-            if cv2.contourArea(contour) < 3:
-                continue
+        sh, sw = scaled_shape
+        for contour in contours:
             epsilon = 0.002 * cv2.arcLength(contour, True)
             approx = cv2.approxPolyDP(contour, epsilon, True)
-            if len(approx) < 4:
+            pts = approx.reshape((-1, 2)).astype(np.float32)
+            if pts.shape[0] < 4:
                 continue
-            poly = Polygon(approx.reshape(-1, 2))
-            if poly.area < 1:
+            score = cls._box_score_fast(prob, pts)
+            if box_thresh > score:
                 continue
-            dist = unclip_ratio * np.sqrt(poly.area / (1 + len(approx)))
-            expanded = poly.buffer(dist, resolution=2)
-            if expanded.is_empty or expanded.geom_type not in ("Polygon", "MultiPolygon"):
+            box = cls._unclip(pts, unclip_ratio)
+            if box.size == 0:
                 continue
-            if expanded.geom_type == "MultiPolygon":
-                expanded = max(expanded.geoms, key=lambda p: p.area)
-            pts = np.array(expanded.exterior.coords[:-1], dtype=np.float32)
-            pts[:, 0] *= ow / scaled_shape[1]
-            pts[:, 1] *= oh / scaled_shape[0]
-            pts = np.clip(pts, [0, 0], [ow - 1, oh - 1])
-            rect = cv2.minAreaRect(pts.astype(np.int32))
-            box = cv2.boxPoints(rect)
+            box[:, 0] *= ow / sw
+            box[:, 1] *= oh / sh
             box = np.clip(box, [0, 0], [ow - 1, oh - 1]).astype(np.float32)
             boxes.append(box)
         return boxes
@@ -127,15 +144,17 @@ class OcrOnnxEngine:
         pred_idx = np.argmax(pred, axis=1)
         blank = 0
         res, prev = [], -1
-        for idx in pred_idx:
+        aligned_probs = []
+        for i, idx in enumerate(pred_idx):
             if idx == blank or idx > len(self._char_list):
                 prev = -1
                 continue
             if idx != prev:
                 res.append(self._char_list[idx - 1])
+                aligned_probs.append(probs[i])
             prev = idx
         text = "".join(res)
-        conf = float(np.mean(probs))
+        conf = float(np.mean(aligned_probs)) if aligned_probs else 0.0
         return text, conf
 
     def infer(self, image_path: str) -> list[dict]:
